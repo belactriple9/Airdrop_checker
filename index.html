@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>
+    <script async>
+
+        /*
+        Test suit of addresses I've been using
+        0x327aaC392E77C4BfB7464e2EA704E5E9a3DF0bCf,0x431e81e5dfb5a24541b5ff8762bdef3f32f96354,0x0003440b0F7eDB40C1c089B743A07A56BfF72aF0,0xf27078bf9bdc462Fe72BC06E3273ddE7C5a41bB5
+        */
+        $(() => {
+            $('#search-btn').on('click', (e) => {
+                e.preventDefault(); //*CRITICAL* : this "catches" the form submit event and stops it
+
+                function driver() {
+                    const proxyUrl = 'https://cors.bridged.cc/'; //for CORS error requests
+                    const inchAirdrop1URL = 'https://governance.1inch.exchange/v1.1/distribution/';
+                    const inchAirdrop2URL = 'https://governance.1inch.exchange/v1.1/distribution/v2/';
+                    const uniswapAirdropURL = 'https://merkle-drop-1.uniswap.workers.dev';
+                    const elipsisAirdrop1URL = 'https://raw.githubusercontent.com/ellipsis-finance/vecrv-airdrop/master/distributions/distribution-2021-04-15.json';
+                    const elipsisAirdrop2URL = 'https://raw.githubusercontent.com/ellipsis-finance/vecrv-airdrop/master/distributions/distribution-2021-04-08.json';
+                    const elipsisAirdrop3URL = 'https://raw.githubusercontent.com/ellipsis-finance/vecrv-airdrop/master/distributions/distribution-2021-04-01.json';
+                    const elipsisAirdrop4URL = 'https://raw.githubusercontent.com/ellipsis-finance/vecrv-airdrop/master/distributions/distribution-2021-03-18.json';
+                    const umaAirdropURL = 'https://raw.githubusercontent.com/UMAprotocol/token-distribution/master/outputs/governance_recipients.json';
+                    const poolAirdropURL = 'https://merkle.pooltogether.com/.netlify/functions/merkleAddressData'
+                    const murAllURL = 'https://murall.art/claims/merkle/' //needs to be appended with .json after the address
+                    const lottoURL = 'https://upfiring.com/dump_4-8.json'
+                    const openseaTradersURL = 'https://api.openseatraders.io/merkle/';
+                    const amplURL = 'https://web-api.ampleforth.org/eth/forth-claim-proof?wallet=';
+                    $('#results').text("")
+                    let addresses = document.getElementById("addrList").value; //takes in as a string
+                    addresses = addresses.replaceAll(" ", "");
+                    addresses = addresses.replaceAll("\t", ",");
+                    console.log(addresses);
+                    addresses = addresses.split(','); //convert addresses from a string to a list of substrings
+                    let address = "";
+                    for (let i = 0; i < addresses.length; i++) {
+                        address = addresses[i];
+                        get1inchv1(address);
+                        get1inchv2(address);
+                        getUniswap(address);
+                        getElipsis1(address);
+                        getElipsis2(address);
+                        getElipsis3(address);
+                        getElipsis4(address);
+                        getUMA(address);
+                        getPool(address);
+                        getMurAll(address);
+                        //getLotto(address); //not working due to CORS
+                        getAmpl(address);
+
+                    }
+
+                    function get1inchv1(address) {
+                        $.ajax({ method: "GET", url: inchAirdrop1URL + address, }).done((ret) => {
+                            ret.hasOwnProperty('index') ? $('#results').append(address + " 1inch v1\n") : null;
+                        }); //get the return from first 1inch airdrop
+                    }
+
+                    function get1inchv2(address) {
+                        $.ajax({ method: "GET", url: inchAirdrop2URL + address }).done((ret) => {
+                            ret.hasOwnProperty('index') ? $('#results').append(address + " 1inch v2\n") : null;
+                        })
+                    }
+
+                    //If users could claim UNI, they can claim BITPIF
+                    function getUniswap(address) {
+                        $.ajax({ method: "POST", url: uniswapAirdropURL, dataType: "json", data: JSON.stringify({ chainId: 1, address: address }), contentType: "application/json" }).done((ret) => {
+                            ret.hasOwnProperty('index') ? $('#results').append(address + " Uniswap\n" + address + " BitPif\n") : null;
+                        })
+                    }
+
+                    function getElipsis1(address) {
+                        $.ajax({ method: "GET", url: elipsisAirdrop1URL }).done((ret) => {
+                            console.log(JSON.parse(ret)["claims"].hasOwnProperty(address));
+                            JSON.parse(ret)['claims'].hasOwnProperty(address) ? $('#results').append(address + " Elipsis Week 1\n") : null;
+                        })
+                    }
+
+                    function getElipsis2(address) {
+                        $.ajax({ method: "GET", url: elipsisAirdrop2URL }).done((ret) => {
+                            JSON.parse(ret)['claims'].hasOwnProperty(address) ? $('#results').append(address + " Elipsis Week 2\n") : null;
+                        })
+                    }
+
+                    function getElipsis3(address) {
+                        $.ajax({ method: "GET", url: elipsisAirdrop3URL }).done((ret) => {
+                            JSON.parse(ret)['claims'].hasOwnProperty(address) ? $('#results').append(address + " Elipsis Week 3\n") : null;
+                        })
+                    }
+
+                    function getElipsis4(address) {
+                        $.ajax({ method: "GET", url: elipsisAirdrop4URL }).done((ret) => {
+                            JSON.parse(ret)['claims'].hasOwnProperty(address) ? $('#results').append(address + " Elipsis Week 4\n") : null;
+                        })
+                    }
+
+                    function getUMA(address) {
+                        $.ajax({ method: "GET", url: umaAirdropURL }).done((ret) => {
+                            JSON.parse(ret).hasOwnProperty(address) ? $('#results').append(address + " UMA airdrop\n") : null;
+                        })
+                    }
+
+                    function getPool(address) {
+                        $.ajax({ method: "GET", dataType: "json", url: poolAirdropURL, data: { address: address } }).done((ret) => {
+                            ret.hasOwnProperty('index') ? $('#results').append(address + " Pooltogether\n") : null;
+                        })
+                    }
+
+                    function getMurAll(address) {
+                        $.ajax({
+                            method: "GET", dataType: "json", cors: true, contentType: 'text/html', url: proxyUrl + (murAllURL + address + '.json'), headers: { 'strict-origin-when-cross-origin': '*', }
+                        }).done((ret) => {
+                            ret.hasOwnProperty('index') ? $('#results').append(address + " MurAll\n") : null;
+                        })
+                    }
+
+                    function getLotto(address) {
+                        $.ajax({ method: "GET", dataType: "json", url: lottoURL }).done((ret) => {
+                            console.log($.grep(ret, (obj) => { return obj == { address: address } }))
+                        }
+                        )
+                    }
+
+                    function getOpenSeaTraders(address) {
+                        $.ajax({ method: "GET", url: openseaTradersURL + address }).done((ret) => {
+                            !ret['index'] == -1 ? $('#results').append(address + " Openseatraders\n") : null;
+                        })
+                    }
+
+                    function getAmpl(address) {
+                        $.ajax({ method: "GET", dataType: "json", url: amplURL + address }).done((ret) => {
+                            ret.leafNode != "" ? $('#results').append(address + " Ampleforth\n") : null;
+                        })
+                    }
+
+                }
+
+                driver()
+            }) //end search-btn
+
+            $('#organize-btn').on('click', (e) => {
+                e.preventDefault();
+
+                function driver() {
+                    let text = $('#results').text();
+                    text = text.split(/\r?\n/); //split on newline
+                    text = text.sort(); //sort now that it's an array
+                    text = text.join("\n") //join on newline
+                    $('#results').text(text);
+                }
+
+                driver();
+            })
+        })
+
+
+    </script>
+</head>
+
+<body>
+
+    <h1>Quick search airdrops</h1>
+    <pre>
+Currently only searches for the following airdrops: 1inch, Uniswap, Elipsis week 1-4 (BSC), UMA, BitPif, Pooltogether, MurAll
+----------------------------------------------------------- 
+1) Input a comma seperated or tab seperated list of addresses
+2) Click the button to search
+3) A list will show up of what airdrops are claimable (that are implemented)
+----------------------------------------------------------- 
+Other unchecked airdrops to look out for: lotto.finance, AlchemyDAO, forcedao, convexfinance
+    </pre>
+
+    <br>
+    <form>
+        <label for="addrList">Enter address(es) to check</label>
+        <textarea id="addrList" rows="5" cols="85"></textarea>
+        <br>
+        <button id="search-btn">Search</button> <button id="organize-btn">Organize</button>
+    </form>
+    <h4>Results</h4>
+    <p id="results" text="wow" style="white-space: pre-line; display: block;">
+
+    </p>
+
+</body>
+
+</html>
