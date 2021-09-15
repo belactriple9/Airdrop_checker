@@ -27,6 +27,7 @@
                     const murAllURL = 'https://murall.art/claims/merkle/' //needs to be appended with .json after the address
                     const lottoURL = 'https://upfiring.com/dump_4-8.json'
                     const openseaTradersURL = 'https://api.openseatraders.io/merkle/';
+                    const forceDaoURL = 'https://force-v2-drop-east1.s3.amazonaws.com/';
                     const amplURL = 'https://web-api.ampleforth.org/eth/forth-claim-proof?wallet=';
                     $('#results').text("")
                     let addresses = document.getElementById("addrList").value; //takes in as a string
@@ -49,7 +50,7 @@
                         getMurAll(address);
                         //getLotto(address); //not working due to CORS
                         getAmpl(address);
-
+                        getForcedao(address);
                     }
 
                     function get1inchv1(address) {
@@ -132,6 +133,12 @@
                     function getAmpl(address) {
                         $.ajax({ method: "GET", dataType: "json", url: amplURL + address }).done((ret) => {
                             ret.leafNode != "" ? $('#results').append(address + " Ampleforth\n") : null;
+                        })
+                    }
+
+                    function getForcedao(address) {
+                        $.ajax({ method: "GET", url: forceDaoURL + address + ".json" }).done((ret) => {
+                            ret.hasOwnProperty('proof') ? $('#results').append(address + " forceDao\n") : null;
                         })
                     }
 
